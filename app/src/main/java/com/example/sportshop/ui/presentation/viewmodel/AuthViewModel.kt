@@ -1,0 +1,96 @@
+package com.example.sportshop.ui.presentation.viewmodel
+
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.sportshop.ui.domain.model.AuthData
+import com.example.sportshop.ui.domain.model.AuthResult
+import com.example.sportshop.ui.domain.usecase.LoginUseCase
+import com.example.sportshop.ui.domain.usecase.RegisterUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val loginUseCase: LoginUseCase,
+    private val registerUseCase: RegisterUseCase
+) : ViewModel() {
+
+    private val _authState = mutableStateOf<AuthData?>(null)
+    val authState: State<AuthData?> = _authState
+
+    private val _loading = mutableStateOf(false)
+    val loading: State<Boolean> = _loading
+
+    private val _error = mutableStateOf<String?>(null)
+    val error: State<String?> = _error
+
+    fun login(email: String, password: String) {
+        if (email.isBlank() || password.isBlank()) {
+            _error.value = "Введите email и пароль"
+            return
+        }
+
+        _loading.value = true
+        _error.value = null
+
+        viewModelScope.launch {
+            when (val result = loginUseCase(email, password)) {
+                is AuthResult.Success -> {
+                    _authState.value = result.data
+                    _error.value = null
+                }
+
+                is AuthResult.Failure -> {
+                    _error.value = result.message
+                    _authState.value = null
+                }
+            }
+
+            _loading.value = false
+        }
+    }
+
+    fun register(
+        firstName: String,
+        email: String,
+        password: String,
+        repeatPassword: String
+    ) {
+        if (firstName.isBlank() || email.isBlank() || password.isBlank() || repeatPassword.isBlank()) {
+            _error.value = "Заполните все поля"
+            return
+        }
+
+        if (password != repeatPassword) {
+            _error.value = "Пароли не совпадают"
+            return
+        }
+
+        if (password.length < 6) {
+            _error.value = "Пароль должен быть не короче 6 символов"
+            return
+        }
+
+        _loading.value = true
+        _error.value = null
+
+        viewModelScope.launch {
+            when (val result = registerUseCase(firstName, email, password)) {
+                is AuthResult.Success -> {
+                    _authState.value = result.data
+                    _error.value = null
+                }
+
+                is AuthResult.Failure -> {
+                    _error.value = result.message
+                    _authState.value = null
+                }
+            }
+
+            _loading.value = false
+        }
+    }
+}

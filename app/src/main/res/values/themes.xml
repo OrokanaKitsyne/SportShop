@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.SportShop" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.SportShop.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#48B2E7</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_bag</item>
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        <item name="postSplashScreenTheme">@style/Theme.SportShop</item>
+    </style>
+
+</resources>
