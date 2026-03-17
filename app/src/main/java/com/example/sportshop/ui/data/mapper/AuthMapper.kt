@@ -6,14 +6,17 @@ import com.example.sportshop.ui.domain.model.AuthUser
 
 object AuthMapper {
 
-    fun  toDomain(authResponse: AuthResponseDto): AuthData
-    {
+    fun toDomainOrNull(authResponse: AuthResponseDto): AuthData? {
+        val user = authResponse.user ?: return null
+        val accessToken = authResponse.access_token ?: return null
+        val refreshToken = authResponse.refresh_token ?: return null
+
         return AuthData(
-            accessToken = authResponse.access_token,
-            refreshToken = authResponse.refresh_token,
+            accessToken = accessToken,
+            refreshToken = refreshToken,
             user = AuthUser(
-                id = authResponse.user.id,
-                email = authResponse.user.email
+                id = user.id,
+                email = user.email
             )
         )
     }

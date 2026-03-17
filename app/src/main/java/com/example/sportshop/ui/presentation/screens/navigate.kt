@@ -15,6 +15,7 @@ object AppRoutes {
     const val OTP = "otp"
     const val NEW_PASSWORD = "new_password"
     const val PROFILE = "profile"
+    const val CARD = "card"
 }
 
 
@@ -56,6 +57,9 @@ fun AppNavigation() {
         }
         composable(AppRoutes.PROFILE) {
             ProfileScreen(navController = navController)
+        }
+        composable(AppRoutes.CARD) {
+            CardScreen(navController = navController)
         }
     }
 }

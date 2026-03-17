@@ -1,5 +1,6 @@
 package com.example.sportshop.ui.presentation.viewmodel
 
+import android.util.Patterns
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -28,8 +29,16 @@ class AuthViewModel @Inject constructor(
     val error: State<String?> = _error
 
     fun login(email: String, password: String) {
-        if (email.isBlank() || password.isBlank()) {
+        val cleanEmail = email.trim()
+        val cleanPassword = password.trim()
+
+        if (cleanEmail.isBlank() || cleanPassword.isBlank()) {
             _error.value = "Введите email и пароль"
+            return
+        }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()) {
+            _error.value = "Введите корректный email"
             return
         }
 
@@ -37,7 +46,7 @@ class AuthViewModel @Inject constructor(
         _error.value = null
 
         viewModelScope.launch {
-            when (val result = loginUseCase(email, password)) {
+            when (val result = loginUseCase(cleanEmail, cleanPassword)) {
                 is AuthResult.Success -> {
                     _authState.value = result.data
                     _error.value = null
@@ -59,17 +68,32 @@ class AuthViewModel @Inject constructor(
         password: String,
         repeatPassword: String
     ) {
-        if (firstName.isBlank() || email.isBlank() || password.isBlank() || repeatPassword.isBlank()) {
+        val cleanFirstName = firstName.trim()
+        val cleanEmail = email.trim()
+        val cleanPassword = password.trim()
+        val cleanRepeatPassword = repeatPassword.trim()
+
+        if (
+            cleanFirstName.isBlank() ||
+            cleanEmail.isBlank() ||
+            cleanPassword.isBlank() ||
+            cleanRepeatPassword.isBlank()
+        ) {
             _error.value = "Заполните все поля"
             return
         }
 
-        if (password != repeatPassword) {
+        if (!Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()) {
+            _error.value = "Введите корректный email"
+            return
+        }
+
+        if (cleanPassword != cleanRepeatPassword) {
             _error.value = "Пароли не совпадают"
             return
         }
 
-        if (password.length < 6) {
+        if (cleanPassword.length < 6) {
             _error.value = "Пароль должен быть не короче 6 символов"
             return
         }
@@ -78,7 +102,7 @@ class AuthViewModel @Inject constructor(
         _error.value = null
 
         viewModelScope.launch {
-            when (val result = registerUseCase(firstName, email, password)) {
+            when (val result = registerUseCase(cleanFirstName, cleanEmail, cleanPassword)) {
                 is AuthResult.Success -> {
                     _authState.value = result.data
                     _error.value = null

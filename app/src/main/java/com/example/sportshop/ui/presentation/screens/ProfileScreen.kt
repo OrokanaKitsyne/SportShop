@@ -1,5 +1,6 @@
 package com.example.sportshop.ui.presentation.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,13 +28,12 @@ import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material.icons.outlined.ShoppingBag
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -45,13 +45,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.sportshop.R
 import com.example.sportshop.ui.data.repository.AuthRepositoryIml
 import com.example.sportshop.ui.presentation.viewmodel.ProfileViewModel
 
@@ -69,15 +73,11 @@ fun ProfileScreen(
     val state by viewModel.uiState
     val snackBarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(Unit) {
-        val userId = viewModel.uiState.value.profile?.userId
-            ?: AuthRepositoryIml.currentToken?.let { null }
+    val currentUserId = AuthRepositoryIml.currentUserId
 
-        val currentUserId = viewModel.uiState.value.profile?.userId
-        if (currentUserId == null) {
-            // ВАЖНО:
-            // сюда лучше подставить реальный userId после логина.
-            // временно можно передать его из authState или сохранить в session manager.
+    LaunchedEffect(currentUserId) {
+        if (!currentUserId.isNullOrBlank()) {
+            viewModel.loadProfile(currentUserId)
         }
     }
 
@@ -87,22 +87,11 @@ fun ProfileScreen(
         }
     }
 
-    val profileUserId = state.profile?.userId
-
-    LaunchedEffect(profileUserId) {
-        if (state.profile == null) {
-            // ЗАМЕНИ на реальный userId текущего пользователя
-            // например, если ты сохранишь его после логина:
-            // viewModel.loadProfile(SessionManager.currentUserId)
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(ProfileBg)
             .statusBarsPadding()
-            .navigationBarsPadding()
     ) {
         when {
             state.isLoading -> {
@@ -115,171 +104,117 @@ fun ProfileScreen(
             }
 
             else -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp)
-                ) {
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    if (state.hasChanges) {
-                        Button(
-                            onClick = { viewModel.saveProfile() },
-                            enabled = !state.isSaving,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp),
-                            shape = RoundedCornerShape(24.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MainBlue,
-                                disabledContainerColor = Color(0xFFA8D9F4)
-                            )
-                        ) {
-                            if (state.isSaving) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    color = Color.White,
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Text("Сохранить", color = Color.White)
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(18.dp))
-                    } else {
-                        Spacer(modifier = Modifier.height(8.dp))
+                Scaffold(
+                    containerColor = ProfileBg,
+                    bottomBar = {
+                        ProfileBottomBar(navController = navController)
                     }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                ) { innerPadding ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(innerPadding)
+                            .padding(horizontal = 16.dp)
                     ) {
-                        IconButton(onClick = { }) {
-                            Icon(
-                                imageVector = Icons.Outlined.Menu,
-                                contentDescription = "Меню",
-                                tint = TextDark
-                            )
-                        }
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                        Text(
-                            text = "Профиль",
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center,
-                            color = TextDark,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Medium
+                        ProfileTopBar(
+                            hasChanges = state.hasChanges,
+                            isSaving = state.isSaving,
+                            onSaveClick = { viewModel.saveProfile() }
                         )
 
+                        Spacer(modifier = Modifier.height(20.dp))
+
                         Box(
-                            modifier = Modifier
-                                .size(34.dp)
-                                .clip(CircleShape)
-                                .background(MainBlue.copy(alpha = 0.15f)),
+                            modifier = Modifier.fillMaxWidth(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Outlined.PersonOutline,
-                                contentDescription = null,
-                                tint = MainBlue,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.images),
+                                    contentDescription = "Фото профиля",
+                                    modifier = Modifier
+                                        .size(88.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                                Spacer(modifier = Modifier.height(10.dp))
 
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Box(
-                                modifier = Modifier
-                                    .size(88.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFFE2E6EA)),
-                                contentAlignment = Alignment.Center
-                            ) {
                                 Text(
-                                    text = (state.editedFirstName.firstOrNull()?.uppercase() ?: "U").toString(),
+                                    text = listOf(state.editedFirstName, state.editedLastName)
+                                        .filter { it.isNotBlank() }
+                                        .joinToString(" ")
+                                        .ifBlank { "Пользователь" },
                                     color = TextDark,
-                                    fontSize = 28.sp,
-                                    fontWeight = FontWeight.Bold
+                                    fontSize = 22.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+
+                                Spacer(modifier = Modifier.height(6.dp))
+
+                                Text(
+                                    text = "Изменить фото профиля",
+                                    color = MainBlue,
+                                    fontSize = 13.sp
                                 )
                             }
+                        }
 
-                            Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
+                        BarcodeCard(
+                            onClick = {
+                                navController.navigate(AppRoutes.CARD)
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        ProfileField(
+                            label = "Имя",
+                            value = state.editedFirstName,
+                            onValueChange = viewModel::onFirstNameChange
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        ProfileField(
+                            label = "Фамилия",
+                            value = state.editedLastName,
+                            onValueChange = viewModel::onLastNameChange
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        ProfileField(
+                            label = "Адрес",
+                            value = state.editedAddress,
+                            onValueChange = viewModel::onAddressChange
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        ProfileField(
+                            label = "Телефон",
+                            value = state.editedPhone,
+                            onValueChange = viewModel::onPhoneChange
+                        )
+
+                        if (!state.error.isNullOrBlank()) {
+                            Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = listOf(state.editedFirstName, state.editedLastName)
-                                    .filter { it.isNotBlank() }
-                                    .joinToString(" ")
-                                    .ifBlank { "Пользователь" },
-                                color = TextDark,
-                                fontSize = 22.sp
-                            )
-
-                            Spacer(modifier = Modifier.height(6.dp))
-
-                            Text(
-                                text = "Изменить фото профиля",
-                                color = MainBlue,
+                                text = state.error ?: "",
+                                color = Color.Red,
                                 fontSize = 13.sp
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    BarcodeStub()
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    ProfileField(
-                        label = "Имя",
-                        value = state.editedFirstName,
-                        onValueChange = viewModel::onFirstNameChange
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    ProfileField(
-                        label = "Фамилия",
-                        value = state.editedLastName,
-                        onValueChange = viewModel::onLastNameChange
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    ProfileField(
-                        label = "Адрес",
-                        value = state.editedAddress,
-                        onValueChange = viewModel::onAddressChange
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    ProfileField(
-                        label = "Телефон",
-                        value = state.editedPhone,
-                        onValueChange = viewModel::onPhoneChange
-                    )
-
-                    if (!state.error.isNullOrBlank()) {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = state.error ?: "",
-                            color = Color.Red,
-                            fontSize = 13.sp
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-                    ProfileBottomBar(navController = navController)
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -294,32 +229,98 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun BarcodeStub() {
+private fun ProfileTopBar(
+    hasChanges: Boolean,
+    isSaving: Boolean,
+    onSaveClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = { }) {
+            Icon(
+                imageVector = Icons.Outlined.Menu,
+                contentDescription = "Меню",
+                tint = TextDark
+            )
+        }
+
+        Text(
+            text = "Профиль",
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Center,
+            color = TextDark,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium
+        )
+
+        when {
+            isSaving -> {
+                Box(
+                    modifier = Modifier.size(34.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        color = MainBlue,
+                        strokeWidth = 2.dp
+                    )
+                }
+            }
+
+            hasChanges -> {
+                Text(
+                    text = "Сохранить",
+                    color = MainBlue,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .clickable(onClick = onSaveClick)
+                        .padding(horizontal = 6.dp, vertical = 4.dp)
+                )
+            }
+
+            else -> {
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .background(MainBlue.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.PersonOutline,
+                        contentDescription = null,
+                        tint = MainBlue,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BarcodeCard(
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(74.dp)
+            .height(96.dp)
             .clip(RoundedCornerShape(18.dp))
             .background(Color.White)
-            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Row(
+        Image(
+            painter = painterResource(id = R.drawable.code),
+            contentDescription = "Карта лояльности",
             modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val bars = listOf(
-                18, 34, 26, 40, 22, 30, 16, 36, 24, 42, 20, 28, 18, 38, 24, 34, 16, 30, 22, 40
-            )
-
-            bars.forEachIndexed { index, height ->
-                Box(
-                    modifier = Modifier
-                        .size(width = if (index % 3 == 0) 3.dp else 2.dp, height = height.dp)
-                        .background(Color.Black)
-                )
-            }
-        }
+            contentScale = ContentScale.Fit
+        )
     }
 }
 
@@ -379,9 +380,9 @@ private fun ProfileBottomBar(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(28.dp))
             .background(Color.White)
-            .padding(horizontal = 18.dp, vertical = 14.dp),
+            .navigationBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

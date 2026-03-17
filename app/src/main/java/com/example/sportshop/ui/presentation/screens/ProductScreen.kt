@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,16 +23,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ExitToApp
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.rounded.Add
@@ -46,13 +41,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -66,10 +61,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.example.sportshop.R
 import com.example.sportshop.ui.data.repository.AuthRepositoryIml
 import com.example.sportshop.ui.domain.model.ProductItem
+import com.example.sportshop.ui.presentation.components.ProfileDrawerContent
 import com.example.sportshop.ui.presentation.viewmodel.HomeViewModel
 import com.example.sportshop.ui.presentation.viewmodel.MenuViewModel
 import kotlinx.coroutines.launch
@@ -97,10 +92,6 @@ fun ProductsScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
-        menuViewModel.loadProfile(AuthRepositoryIml.currentUserId)
-    }
-
     val filteredProducts = if (state.selectedCategory == "Все") {
         state.products
     } else {
@@ -114,19 +105,31 @@ fun ProductsScreen(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                modifier = Modifier.fillMaxHeight(),
                 drawerContainerColor = DrawerBlue,
                 drawerContentColor = Color.White
             ) {
                 ProfileDrawerContent(
                     fullName = menuState.profile?.fullName ?: "Пользователь",
                     photoUrl = menuState.profile?.photoUrl,
-                    onProfileClick = { },
-                    onCartClick = { },
-                    onFavoritesClick = { },
-                    onOrdersClick = { },
-                    onNotificationsClick = { },
-                    onSettingsClick = { },
+                    onProfileClick = {
+                        scope.launch { drawerState.close() }
+                        navController.navigate(AppRoutes.PROFILE)
+                    },
+                    onCartClick = {
+                        scope.launch { drawerState.close() }
+                    },
+                    onFavoritesClick = {
+                        scope.launch { drawerState.close() }
+                    },
+                    onOrdersClick = {
+                        scope.launch { drawerState.close() }
+                    },
+                    onNotificationsClick = {
+                        scope.launch { drawerState.close() }
+                    },
+                    onSettingsClick = {
+                        scope.launch { drawerState.close() }
+                    },
                     onLogoutClick = {
                         AuthRepositoryIml.currentToken = null
                         AuthRepositoryIml.currentUserId = null
@@ -168,73 +171,79 @@ fun ProductsScreen(
                 }
 
                 else -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
-                            .navigationBarsPadding()
-                            .padding(top = 18.dp, bottom = 12.dp)
-                    ) {
-                        HomeTopBar(
-                            onMenuClick = {
-                                scope.launch { drawerState.open() }
-                            }
-                        )
-
-                        Spacer(modifier = Modifier.height(18.dp))
-                        SearchSection()
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        SectionTitle(title = "Категории")
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding = PaddingValues(horizontal = 20.dp)
-                        ) {
-                            items(state.categories) { category ->
-                                CategoryChip(
-                                    title = category.title,
-                                    selected = category.title == state.selectedCategory,
-                                    onClick = { viewModel.selectCategory(category.title) }
-                                )
-                            }
+                    Scaffold(
+                        containerColor = ScreenBg,
+                        bottomBar = {
+                            BottomBar(navController = navController)
                         }
-
-                        Spacer(modifier = Modifier.height(22.dp))
-                        SectionTitle(title = "Популярное", actionText = "Все")
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(14.dp),
-                            contentPadding = PaddingValues(horizontal = 20.dp)
+                    ) { innerPadding ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                                .padding(innerPadding)
+                                .padding(top = 18.dp)
                         ) {
-                            items(popularProducts) { product ->
-                                ProductCard(product = product)
+                            HomeTopBar(
+                                onMenuClick = {
+                                    scope.launch { drawerState.open() }
+                                }
+                            )
+
+                            Spacer(modifier = Modifier.height(18.dp))
+                            SearchSection()
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            SectionTitle(title = "Категории")
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                contentPadding = PaddingValues(horizontal = 20.dp)
+                            ) {
+                                items(state.categories) { category ->
+                                    CategoryChip(
+                                        title = category.title,
+                                        selected = category.title == state.selectedCategory,
+                                        onClick = { viewModel.selectCategory(category.title) }
+                                    )
+                                }
                             }
-                        }
 
-                        Spacer(modifier = Modifier.height(22.dp))
-                        SectionTitle(title = "Акции", actionText = "Все")
-                        Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(22.dp))
+                            SectionTitle(title = "Популярное", actionText = "Все")
+                            Spacer(modifier = Modifier.height(12.dp))
 
-                        PromoCard()
-
-                        Spacer(modifier = Modifier.height(22.dp))
-                        SectionTitle(title = "Лучшее", actionText = "Все")
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(14.dp),
-                            contentPadding = PaddingValues(horizontal = 20.dp)
-                        ) {
-                            items(bestSellerProducts) { product ->
-                                ProductCard(product = product)
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                                contentPadding = PaddingValues(horizontal = 20.dp)
+                            ) {
+                                items(popularProducts) { product ->
+                                    ProductCard(product = product)
+                                }
                             }
-                        }
 
-                        Spacer(modifier = Modifier.height(24.dp))
-                        BottomBar(navController)
+                            Spacer(modifier = Modifier.height(22.dp))
+                            SectionTitle(title = "Акции", actionText = "Все")
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            PromoCard()
+
+                            Spacer(modifier = Modifier.height(22.dp))
+                            SectionTitle(title = "Лучшее", actionText = "Все")
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                                contentPadding = PaddingValues(horizontal = 20.dp)
+                            ) {
+                                items(bestSellerProducts) { product ->
+                                    ProductCard(product = product)
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
                     }
                 }
             }
@@ -294,180 +303,6 @@ private fun HomeTopBar(
                     .background(Color(0xFFFF6B57))
             )
         }
-    }
-}
-
-@Composable
-private fun ProfileDrawerContent(
-    fullName: String,
-    photoUrl: String?,
-    onProfileClick: () -> Unit,
-    onCartClick: () -> Unit,
-    onFavoritesClick: () -> Unit,
-    onOrdersClick: () -> Unit,
-    onNotificationsClick: () -> Unit,
-    onSettingsClick: () -> Unit,
-    onLogoutClick: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth(0.86f)
-            .background(DrawerBlue)
-            .padding(horizontal = 20.dp, vertical = 28.dp)
-    ) {
-        ProfileAvatar(photoUrl = photoUrl)
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        Text(
-            text = fullName,
-            color = Color.White,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Medium
-        )
-
-        Spacer(modifier = Modifier.height(28.dp))
-
-        DrawerMenuItem(
-            icon = Icons.Outlined.PersonOutline,
-            title = "Профиль",
-            onClick = onProfileClick
-        )
-
-        DrawerMenuItem(
-            icon = Icons.Outlined.ShoppingBag,
-            title = "Корзина",
-            onClick = onCartClick
-        )
-
-        DrawerMenuItem(
-            icon = Icons.Outlined.FavoriteBorder,
-            title = "Избранное",
-            onClick = onFavoritesClick
-        )
-
-        DrawerMenuItem(
-            icon = Icons.Outlined.LocalShipping,
-            title = "Заказы",
-            onClick = onOrdersClick
-        )
-
-        DrawerMenuItem(
-            icon = Icons.Outlined.NotificationsNone,
-            title = "Уведомления",
-            onClick = onNotificationsClick
-        )
-
-        DrawerMenuItem(
-            icon = Icons.Outlined.Settings,
-            title = "Настройки",
-            onClick = onSettingsClick
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(Color.White.copy(alpha = 0.25f))
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onLogoutClick)
-                .padding(vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Outlined.ExitToApp,
-                contentDescription = "Выйти",
-                tint = Color.White.copy(alpha = 0.95f)
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Text(
-                text = "Выйти",
-                color = Color.White,
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProfileAvatar(photoUrl: String?) {
-    val hasPhoto = !photoUrl.isNullOrBlank()
-
-    Box(
-        modifier = Modifier
-            .size(76.dp)
-            .clip(CircleShape)
-            .background(Color.White.copy(alpha = 0.2f)),
-        contentAlignment = Alignment.Center
-    ) {
-        if (hasPhoto) {
-            AsyncImage(
-                model = photoUrl,
-                contentDescription = "Фото профиля",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop,
-                placeholder = painterResource(id = R.drawable.images),
-                error = painterResource(id = R.drawable.images)
-            )
-        } else {
-            Image(
-                painter = painterResource(id = R.drawable.images),
-                contentDescription = "Фото профиля",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-        }
-    }
-}
-
-@Composable
-private fun DrawerMenuItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            tint = Color.White
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Text(
-            text = title,
-            color = Color.White,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f)
-        )
-
-        Icon(
-            imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-            contentDescription = null,
-            tint = Color.White
-        )
     }
 }
 
@@ -582,7 +417,7 @@ private fun ProductCard(product: ProductItem) {
     Card(
         modifier = Modifier
             .width(155.dp)
-            .height(212.dp),
+            .height(235.dp),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -617,16 +452,19 @@ private fun ProductCard(product: ProductItem) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(74.dp)
+                    .height(95.dp)
                     .clip(RoundedCornerShape(14.dp))
                     .background(Color(0xFFF3F8FF)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.ShoppingBag,
-                    contentDescription = null,
-                    tint = PrimaryBlue,
-                    modifier = Modifier.size(36.dp)
+                Image(
+                    painter = painterResource(id = R.drawable.boots),
+                    contentDescription = product.title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp)
+                        .padding(horizontal = 8.dp),
+                    contentScale = ContentScale.Fit
                 )
             }
 
@@ -667,7 +505,13 @@ private fun ProductCard(product: ProductItem) {
                 Box(
                     modifier = Modifier
                         .size(34.dp)
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 12.dp))
+                        .clip(
+                            RoundedCornerShape(
+                                topStart = 12.dp,
+                                topEnd = 12.dp,
+                                bottomStart = 12.dp
+                            )
+                        )
                         .background(PrimaryBlue),
                     contentAlignment = Alignment.Center
                 ) {
@@ -682,6 +526,7 @@ private fun ProductCard(product: ProductItem) {
         }
     }
 }
+
 private fun formatPrice(price: Double): String {
     val symbols = DecimalFormatSymbols(Locale("ru")).apply {
         groupingSeparator = ' '
@@ -689,6 +534,7 @@ private fun formatPrice(price: Double): String {
     val formatter = DecimalFormat("#,###", symbols)
     return "₽${formatter.format(price)}"
 }
+
 @Composable
 private fun PromoCard() {
     Card(
@@ -729,11 +575,14 @@ private fun PromoCard() {
                     .background(Color(0xFFF7F3FF)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.ShoppingBag,
-                    contentDescription = null,
-                    tint = SalePurple,
-                    modifier = Modifier.size(34.dp)
+                Image(
+                    painter = painterResource(id = R.drawable.sale),
+                    contentDescription = "Акция",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .padding(horizontal = 6.dp),
+                    contentScale = ContentScale.Fit
                 )
             }
         }
@@ -745,7 +594,9 @@ private fun BottomBar(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp),
+            .background(Color.White)
+            .navigationBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

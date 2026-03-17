@@ -16,12 +16,10 @@ interface AuthApi {
         @Body loginRequest: LoginRequestDto
     ): Response<AuthResponseDto>
 
-
     @POST("auth/v1/signup")
     suspend fun register(
         @Body body: Map<String, String>
     ): Response<AuthResponseDto>
-
 
     @Headers(
         "Content-Type: application/json",
