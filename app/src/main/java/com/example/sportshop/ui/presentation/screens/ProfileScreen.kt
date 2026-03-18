@@ -56,7 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sportshop.R
-import com.example.sportshop.ui.data.repository.AuthRepositoryIml
+import com.example.sportshop.ui.data.repository.AuthRepositoryImpl
 import com.example.sportshop.ui.presentation.viewmodel.ProfileViewModel
 
 private val ProfileBg = Color(0xFFF7F7F9)
@@ -73,7 +73,7 @@ fun ProfileScreen(
     val state by viewModel.uiState
     val snackBarHostState = remember { SnackbarHostState() }
 
-    val currentUserId = AuthRepositoryIml.currentUserId
+    val currentUserId = AuthRepositoryImpl.currentUserId
 
     LaunchedEffect(currentUserId) {
         if (!currentUserId.isNullOrBlank()) {

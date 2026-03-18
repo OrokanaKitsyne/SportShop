@@ -10,7 +10,7 @@ import com.example.sportshop.ui.domain.model.AuthUser
 import com.example.sportshop.ui.domain.repository.AuthRepository
 import javax.inject.Inject
 
-class AuthRepositoryIml @Inject constructor(
+class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi
 ) : AuthRepository {
 

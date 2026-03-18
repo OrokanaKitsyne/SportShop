@@ -62,7 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.sportshop.R
-import com.example.sportshop.ui.data.repository.AuthRepositoryIml
+import com.example.sportshop.ui.data.repository.AuthRepositoryImpl
 import com.example.sportshop.ui.domain.model.ProductItem
 import com.example.sportshop.ui.presentation.viewmodel.HomeViewModel
 import com.example.sportshop.ui.presentation.viewmodel.MenuViewModel
@@ -130,8 +130,8 @@ fun ProductsScreen(
                         scope.launch { drawerState.close() }
                     },
                     onLogoutClick = {
-                        AuthRepositoryIml.currentToken = null
-                        AuthRepositoryIml.currentUserId = null
+                        AuthRepositoryImpl.currentToken = null
+                        AuthRepositoryImpl.currentUserId = null
                         navController.navigate(AppRoutes.LOGIN) {
                             popUpTo(0)
                         }
