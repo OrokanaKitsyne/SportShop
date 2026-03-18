@@ -64,7 +64,6 @@ import androidx.navigation.NavController
 import com.example.sportshop.R
 import com.example.sportshop.ui.data.repository.AuthRepositoryIml
 import com.example.sportshop.ui.domain.model.ProductItem
-import com.example.sportshop.ui.presentation.components.ProfileDrawerContent
 import com.example.sportshop.ui.presentation.viewmodel.HomeViewModel
 import com.example.sportshop.ui.presentation.viewmodel.MenuViewModel
 import kotlinx.coroutines.launch

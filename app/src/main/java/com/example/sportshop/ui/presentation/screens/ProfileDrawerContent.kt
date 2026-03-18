@@ -1,4 +1,4 @@
-package com.example.sportshop.ui.presentation.components
+package com.example.sportshop.ui.presentation.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

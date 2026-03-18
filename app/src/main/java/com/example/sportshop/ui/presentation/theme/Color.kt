@@ -1,4 +1,4 @@
-package com.example.sportshop.ui.theme
+package com.example.sportshop.ui.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

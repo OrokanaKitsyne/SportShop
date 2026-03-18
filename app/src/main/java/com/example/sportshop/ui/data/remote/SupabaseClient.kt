@@ -1,4 +1,4 @@
-package com.example.sportshop.ui.theme
+package com.example.sportshop.ui.data.remote
 
 import io.github.jan.supabase.storage.Storage
 import io.github.jan.supabase.createSupabaseClient

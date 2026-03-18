@@ -2,7 +2,7 @@
 <resources>
 
     <style name="Theme.SportShop" parent="android:Theme.Material.Light.NoActionBar" />
-<<<<<<< HEAD
+
     <style name="Theme.SportShop.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#48B2E7</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_bag</item>
@@ -10,6 +10,4 @@
         <item name="postSplashScreenTheme">@style/Theme.SportShop</item>
     </style>
 
-=======
->>>>>>> df8b2d2de87eee3e940c12664ce805d2453ecd19
 </resources>

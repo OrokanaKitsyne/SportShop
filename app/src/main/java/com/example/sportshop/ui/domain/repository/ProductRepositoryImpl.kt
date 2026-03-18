@@ -1,10 +1,9 @@
-package com.example.sportshop.ui.data.repository
+package com.example.sportshop.ui.domain.repository
 
 import com.example.sportshop.ui.data.mapper.toDomain
 import com.example.sportshop.ui.data.remote.ProductApi
 import com.example.sportshop.ui.domain.model.CategoryItem
 import com.example.sportshop.ui.domain.model.ProductItem
-import com.example.sportshop.ui.domain.repository.ProductRepository
 import javax.inject.Inject
 
 class ProductRepositoryImpl @Inject constructor(
